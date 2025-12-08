@@ -61,6 +61,58 @@ router.post('/', async (req, res) => {
     }
 });
 
+// Update PKWT record
+router.put('/:id', async (req, res) => {
+    const { id } = req.params;
+    const {
+        name, position, work_location, contract_number,
+        start_date, end_date, duration, compensation_pay_date, status, notes
+    } = req.body;
+
+    try {
+        const updatedPkwt = await pool.query(
+            `UPDATE pkwt SET
+                name = $1, position = $2, work_location = $3, contract_number = $4,
+                start_date = $5, end_date = $6, duration = $7,
+                compensation_pay_date = $8, status = $9, notes = $10
+            WHERE id = $11 RETURNING *`,
+            [name, position, work_location, contract_number, start_date, end_date,
+                duration, compensation_pay_date, status, notes, id]
+        );
+
+        if (updatedPkwt.rows.length === 0) {
+            return res.status(404).json({ message: 'PKWT not found' });
+        }
+
+        res.json(updatedPkwt.rows[0]);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Delete PKWT record
+router.delete('/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const deletedPkwt = await pool.query(
+            'DELETE FROM pkwt WHERE id = $1 RETURNING *',
+            [id]
+        );
+
+        if (deletedPkwt.rows.length === 0) {
+            return res.status(404).json({ message: 'PKWT not found' });
+        }
+
+        res.json({ message: 'PKWT deleted successfully', data: deletedPkwt.rows[0] });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+
 // Helper function to insert data
 const insertData = async (data) => {
     let successCount = 0;

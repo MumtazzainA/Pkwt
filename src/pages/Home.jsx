@@ -1,7 +1,10 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 
 const Home = () => {
+    const navigate = useNavigate();
+
     return (
         <div className="dashboard-layout">
             <Sidebar />
@@ -20,7 +23,7 @@ const Home = () => {
                         <div className="action-card glass-card">
                             <h3>Input Data PKWT</h3>
                             <p>Add new employee contract data to the system.</p>
-                            <button className="btn-primary action-btn" onClick={() => window.location.href = '/pkwt-data'}>
+                            <button className="btn-primary action-btn" onClick={() => navigate('/input-data')}>
                                 + Input Data
                             </button>
                         </div>

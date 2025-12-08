@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Home from './pages/Home';
 import InputData from './pages/InputData';
+import PKWTList from './pages/PKWTList';
 
 // Komponen untuk memproteksi route
 const ProtectedRoute = ({ children }) => {
@@ -53,9 +54,15 @@ function App() {
           </ProtectedRoute>
         } />
 
-        <Route path="/pkwt-data" element={
+        <Route path="/input-data" element={
           <ProtectedRoute>
             <InputData />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/pkwt-data" element={
+          <ProtectedRoute>
+            <PKWTList />
           </ProtectedRoute>
         } />
       </Routes>
