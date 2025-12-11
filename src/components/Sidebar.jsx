@@ -23,6 +23,7 @@ const Sidebar = () => {
                 <ul>
                     <li><Link to="/home" className="nav-item active">Dashboard</Link></li>
                     <li><Link to="/pkwt-data" className="nav-item">Data PKWT</Link></li>
+                    <li><Link to="/notifications" className="nav-item">Notifikasi</Link></li>
                     <li><Link to="/settings" className="nav-item">Settings</Link></li>
                 </ul>
             </nav>

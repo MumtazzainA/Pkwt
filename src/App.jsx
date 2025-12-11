@@ -5,6 +5,7 @@ import Register from './pages/Register';
 import Home from './pages/Home';
 import InputData from './pages/InputData';
 import PKWTList from './pages/PKWTList';
+import Notifications from './pages/Notifications';
 
 // Komponen untuk memproteksi route
 const ProtectedRoute = ({ children }) => {
@@ -63,6 +64,12 @@ function App() {
         <Route path="/pkwt-data" element={
           <ProtectedRoute>
             <PKWTList />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/notifications" element={
+          <ProtectedRoute>
+            <Notifications />
           </ProtectedRoute>
         } />
       </Routes>

@@ -2,9 +2,11 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import readline from 'readline';
-import pool from './db.js';
 import authRoutes from './routes/auth.js';
 import pkwtRoutes from './routes/pkwt.js';
+import notificationRoutes from './routes/notifications.js';
+import { startNotificationChecker } from './services/notificationChecker.js';
+
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -22,14 +24,17 @@ app.use((req, res, next) => {
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/pkwt', pkwtRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Test routes
 app.get('/', (req, res) => {
     res.send('PKWT Management API is running');
 });
 
+
 app.get('/api/test', async (req, res) => {
     try {
+        const pool = (await import('./db.js')).default;
         const result = await pool.query('SELECT NOW()');
         res.json({ message: 'Database connected', time: result.rows[0].now });
     } catch (err) {
@@ -38,6 +43,7 @@ app.get('/api/test', async (req, res) => {
     }
 });
 
+
 // Global Error Handler
 app.use((err, req, res, next) => {
     console.error(err.stack);
@@ -45,12 +51,19 @@ app.use((err, req, res, next) => {
 });
 
 // Function to start server
-function startServer() {
+async function startServer() {
+    // Import pool after password is set
+    const pool = (await import('./db.js')).default;
+
     const server = app.listen(port, () => {
         console.log(`✅ Server running on port ${port}`);
         console.log(`📡 API: http://localhost:${port}`);
         console.log(`💾 Database: ${process.env.DB_NAME}`);
         console.log(`\n🟢 Server is ready to accept requests\n`);
+
+        // Start notification checker service
+        console.log('🔔 Starting notification checker service...');
+        startNotificationChecker();
     });
 
     // Keep server running
@@ -101,7 +114,7 @@ if (process.env.DB_PASSWORD) {
 
     console.log('🔐 Database password not found in .env file');
     rl.question('Please enter database password: ', (password) => {
-        process.env.DB_PASSWORD = password;
+        process.env.DB_PASSWORD = password.trim();
         rl.close();
         console.log('✅ Password set successfully\n');
         startServer();

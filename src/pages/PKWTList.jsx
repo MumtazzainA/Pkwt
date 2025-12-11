@@ -98,13 +98,28 @@ const PKWTList = () => {
     };
 
     const calculateRemainingDays = (endDate) => {
+        // Create date from current local time (Indonesia timezone)
         const today = new Date();
-        today.setHours(0, 0, 0, 0); // Reset time to start of day
-        const end = new Date(endDate);
-        end.setHours(0, 0, 0, 0); // Reset time to start of day
-        const diffTime = end - today;
+        const todayYear = today.getFullYear();
+        const todayMonth = today.getMonth();
+        const todayDay = today.getDate();
+        const todayLocal = new Date(todayYear, todayMonth, todayDay); // Local date at midnight
+
+        // Parse end date properly to avoid timezone issues
+        let endLocal;
+        if (typeof endDate === 'string') {
+            // Parse YYYY-MM-DD format
+            const parts = endDate.split('T')[0].split('-');
+            endLocal = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+        } else {
+            const end = new Date(endDate);
+            endLocal = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+        }
+
+        const diffTime = endLocal - todayLocal;
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        return diffDays;
+        // Add 1 to fix timezone offset issue (WIB UTC+7)
+        return diffDays + 1;
     };
 
     const getRemainingDaysDisplay = (endDate, status) => {

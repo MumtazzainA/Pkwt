@@ -3,9 +3,14 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import svgCaptcha from 'svg-captcha';
 import { v4 as uuidv4 } from 'uuid';
-import pool from '../db.js';
 
 const router = express.Router();
+
+// Lazy load pool to ensure password is set first
+async function getPool() {
+    return (await import('../db.js')).default;
+}
+
 
 // Store captcha sessions in memory (use Redis for production)
 const captchaSessions = new Map();
@@ -57,6 +62,7 @@ router.post('/register', async (req, res) => {
         console.log('[REGISTER] Attempting to register user:', email);
 
         // Check if user exists
+        const pool = await getPool();
         const userCheck = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
         if (userCheck.rows.length > 0) {
             console.log('[REGISTER] User already exists:', email);
@@ -98,6 +104,7 @@ router.post('/login', async (req, res) => {
 
     try {
         // Check user
+        const pool = await getPool();
         const userResult = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
         if (userResult.rows.length === 0) {
             return res.status(400).json({ message: 'Invalid credentials' });

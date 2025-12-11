@@ -4,9 +4,14 @@ import csv from 'csv-parser';
 import * as XLSX from 'xlsx';
 import fs from 'fs';
 import path from 'path';
-import pool from '../db.js';
 
 const router = express.Router();
+
+// Lazy load pool to ensure password is set first
+async function getPool() {
+    return (await import('../db.js')).default;
+}
+
 // Multer config to preserve extension for easier type checking
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -30,6 +35,7 @@ if (!fs.existsSync('uploads')) {
 // Get all PKWT records
 router.get('/', async (req, res) => {
     try {
+        const pool = await getPool();
         const result = await pool.query('SELECT * FROM pkwt ORDER BY created_at DESC');
         res.json(result.rows);
     } catch (err) {
@@ -46,6 +52,7 @@ router.post('/', async (req, res) => {
     } = req.body;
 
     try {
+        const pool = await getPool();
         const newPkwt = await pool.query(
             `INSERT INTO pkwt (
                 name, position, work_location, contract_number,
@@ -70,6 +77,7 @@ router.put('/:id', async (req, res) => {
     } = req.body;
 
     try {
+        const pool = await getPool();
         const updatedPkwt = await pool.query(
             `UPDATE pkwt SET
                 name = $1, position = $2, work_location = $3, contract_number = $4,
@@ -96,6 +104,7 @@ router.delete('/:id', async (req, res) => {
     const { id } = req.params;
 
     try {
+        const pool = await getPool();
         const deletedPkwt = await pool.query(
             'DELETE FROM pkwt WHERE id = $1 RETURNING *',
             [id]
@@ -137,6 +146,7 @@ const insertData = async (data) => {
                 continue;
             }
 
+            const pool = await getPool();
             await pool.query(
                 `INSERT INTO pkwt (
                     name, position, work_location, contract_number,
