@@ -104,25 +104,41 @@ export async function checkContractsAndNotify() {
         for (const contract of contracts) {
             const remainingDays = calculateRemainingDays(contract.end_date);
 
-            // Only process if remaining days is 30, 7, or 1
-            if (remainingDays !== 30 && remainingDays !== 7 && remainingDays !== 1) {
-                continue;
+            // Determine notification type based on range
+            let notifType = null;
+            let message = null;
+
+            if (remainingDays <= 1) {
+                // Critical: 1 day or less (including overdue, though usually handled elsewhere)
+                notifType = 'critical_1day';
+                message = `🚨 URGENT: Kontrak PKWT untuk ${contract.name} (${contract.position}) akan berakhir besok!`;
+            } else if (remainingDays <= 7) {
+                // Warning: 7 days or less
+                notifType = 'warning_7days';
+                message = `⚠️ Kontrak PKWT untuk ${contract.name} (${contract.position}) akan berakhir dalam 7 hari!`;
+            } else if (remainingDays <= 30) {
+                // Info: 30 days or less
+                notifType = 'warning_30days';
+                message = `Kontrak PKWT untuk ${contract.name} (${contract.position}) akan berakhir dalam 30 hari.`;
             }
 
-            const notifInfo = getNotificationInfo(remainingDays, contract);
-            if (!notifInfo) continue;
+            if (!notifType) continue;
 
-            // Check if notification already exists
-            const exists = await notificationExists(pool, contract.id, notifInfo.type);
+            // Check if THIS specific notification type already exists
+            // We want to ensure we don't send the SAME level notification twice
+            const exists = await notificationExists(pool, contract.id, notifType);
+
             if (exists) {
-                console.log(`ℹ️ [Notification Checker] Notification already exists for contract ${contract.id} (${notifInfo.type})`);
+                // Console log verbose just for debugging, maybe comment out production
+                // console.log(`ℹ️ [Notification Checker] Notification ${notifType} already exists for ${contract.name}`);
                 continue;
             }
 
-            console.log(`⚠️ [Notification Checker] Contract "${contract.name}" has ${remainingDays} days remaining`);
+            console.log(`⚠️ [Notification Checker] Creating ${notifType} for "${contract.name}" (${remainingDays} days remaining)`);
 
             // Send email notification
             let emailSent = false;
+            // Only send email if we haven't sent this specific type before (implicit by notificationExists check above)
             if (userEmails.length > 0) {
                 const emailResult = await sendNotificationEmail(userEmails, contract, remainingDays);
                 if (emailResult.success) {
@@ -133,7 +149,7 @@ export async function checkContractsAndNotify() {
             }
 
             // Create notification in database
-            await createNotification(pool, contract.id, notifInfo.type, notifInfo.message, emailSent);
+            await createNotification(pool, contract.id, notifType, message, emailSent);
             notificationsCreated++;
 
             console.log(`✅ [Notification Checker] Notification created for contract ${contract.id}`);

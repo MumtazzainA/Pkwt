@@ -4,6 +4,7 @@ import csv from 'csv-parser';
 import * as XLSX from 'xlsx';
 import fs from 'fs';
 import path from 'path';
+import { checkContractsAndNotify } from '../services/notificationChecker.js';
 
 const router = express.Router();
 
@@ -60,6 +61,9 @@ router.post('/', async (req, res) => {
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
             [name, position, work_location, contract_number, start_date, end_date, duration, compensation_pay_date, notes]
         );
+
+        // Trigger notification check immediately
+        checkContractsAndNotify().catch(err => console.error('Error triggering notifications:', err));
 
         res.status(201).json(newPkwt.rows[0]);
     } catch (err) {
@@ -196,6 +200,9 @@ router.post('/upload', (req, res) => {
 
                 const { successCount, errorCount } = await insertData(data);
 
+                // Trigger notification check immediately
+                checkContractsAndNotify().catch(err => console.error('Error triggering notifications:', err));
+
                 // Delete temp file
                 if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
 
@@ -217,6 +224,9 @@ router.post('/upload', (req, res) => {
                     .on('data', (data) => results.push(data))
                     .on('end', async () => {
                         const { successCount, errorCount } = await insertData(results);
+
+                        // Trigger notification check immediately
+                        checkContractsAndNotify().catch(err => console.error('Error triggering notifications:', err));
 
                         if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
 

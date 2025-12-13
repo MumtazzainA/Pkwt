@@ -163,13 +163,14 @@ button:focus-visible {
 /* Sidebar Styles */
 .sidebar {
   width: 280px;
-  height: 95vh;
-  margin: 2.5vh 0 2.5vh 1.5rem;
+  height: 100vh;
+  margin: 0;
   display: flex;
   flex-direction: column;
   padding: 2rem;
   background: rgba(255, 255, 255, 0.85);
   /* Slightly more opaque */
+  border-radius: 0;
 }
 
 .profile-section {
@@ -837,6 +838,7 @@ button:focus-visible {
     }
   }
 }
+
 /* ===== NOTIFICATIONS PAGE STYLES ===== */
 .notifications-page-container {
   padding: 1.5rem;
